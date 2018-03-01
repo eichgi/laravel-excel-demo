@@ -1,5 +1,5 @@
 <h1>Lista de Usuarios</h1>
-<table class="table table-striped">
+<table>
     <thead>
     <tr>
         <th>Nombre</th>

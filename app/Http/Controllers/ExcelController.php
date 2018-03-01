@@ -12,36 +12,41 @@ class ExcelController extends Controller
 
     public function bladeToExcel()
     {
+        /** Creamos un archivo llamado fromBlade.xlsx */
         Excel::create('fromBlade', function ($excel) {
+
+            /** La hoja se llamará Usuarios */
             $excel->sheet('Usuarios', function ($sheet) {
+                /** El método loadView nos carga la vista blade a utilizar */
                 $sheet->loadView('usuarios');
             });
 
+            /** Agregará una segunda hoja y se llamará Productos */
             $excel->sheet('Productos', function ($sheet) {
                 $sheet->loadView('productos');
             });
-        })->download('xlsx');
+        })->download('csv');
     }
 
     public function exportExcel()
     {
         /** Fuente de Datos (Array) */
-        $data = [
+        /*$data = [
             ['Nombre', 'Hiram Guerrero'],
             ['Edad', '27'],
             ['Profesión', 'Desarrollador de Software'],
-        ];
+        ];*/
 
         /** Fuente de Datos Eloquent */
         $data = User::all();
 
         /** Creamos nuestro archivo Excel */
-        Excel::create('test', function ($excel) use ($data) {
+        Excel::create('usuarios', function ($excel) use ($data) {
 
-            /** Definimos los metadatos */
-            $excel->setTitle('Usuarios');
-            $excel->setCreator('Eichgi');
-            $excel->setDescription('Creando mi primera hoja en excel con Laravel!');
+            /** Definimos los metadatos
+             * $excel->setTitle('Usuarios');
+             * $excel->setCreator('Eichgi');
+             * $excel->setDescription('Creando mi primera hoja en excel con Laravel!');*/
 
             /** Creamos una hoja */
             $excel->sheet('Hoja Uno', function ($sheet) use ($data) {
@@ -58,17 +63,16 @@ class ExcelController extends Controller
             });
 
             /** Descargamos nuestro archivo pasandole la extensión deseada (xls, xlsx) */
-        })->download('xlsx');
+        })->download('csv');
     }
 
-    public function importExcel(Request $request)
+    public function importExcel()
     {
-        /**
-         * Si deseas cargar el archivo desde el root del proyecto solo debes escribir el nombre como se muestra en este ejemplo
-         * En cambio si deseas recibir el proyecto a través de un formulario entonces debes hacerlo mediante el request:
-         * $request->file('productos')->getRealPath()
-         */
-        Excel::load('productos.xlsx', function ($reader) {
+        /** El método load permite cargar el archivo definido como primer parámetro */
+        Excel::load('productos.csv', function ($reader) {
+            /**
+             * $reader->get() nos permite obtener todas las filas de nuestro archivo
+             */
             foreach ($reader->get() as $key => $row) {
                 $producto = [
                     'articulo' => $row['articulo'],
@@ -78,6 +82,33 @@ class ExcelController extends Controller
                     'status' => $row['status'],
                 ];
 
+                /** Una vez obtenido los datos de la fila procedemos a registrarlos */
+                if (!empty($producto)) {
+                    DB::table('productos')->insert($producto);
+                }
+            }
+
+            echo 'Los productos han sido importados exitosamente';
+        });
+    }
+
+    public function importFromFile(Request $request)
+    {
+        /** Cargando el excel mediante un archivo recibido vía POST con name=productos */
+        Excel::load($request->productos->getRealPath(), function ($reader) {
+            /**
+             * $reader->get() nos permite obtener todas las filas de nuestro archivo
+             */
+            foreach ($reader->get() as $key => $row) {
+                $producto = [
+                    'articulo' => $row['articulo'],
+                    'cantidad' => $row['cantidad'],
+                    'precio_unitario' => $row['precio_unitario'],
+                    'fecha_registro' => $row['fecha_registro'],
+                    'status' => $row['status'],
+                ];
+
+                /** Una vez obtenido los datos de la fila procedemos a registrarlos */
                 if (!empty($producto)) {
                     DB::table('productos')->insert($producto);
                 }

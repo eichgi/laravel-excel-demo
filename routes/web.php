@@ -21,6 +21,10 @@ Route::get('/exportExcel', 'ExcelController@exportExcel');
 Route::get('/importExcel', 'ExcelController@importExcel');
 Route::get('/bladeToExcel', 'ExcelController@bladeToExcel');
 
+Route::post('/importExcelFromFile', 'ExcelController@importFromFile');
+
+
+
 
 
 
